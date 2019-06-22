@@ -1,6 +1,8 @@
+
+    
 // @TODO: YOUR CODE HERE!
-var svgWidth = 960;
-var svgHeight = 500;
+var svgWidth = 1200;
+var svgHeight = 800;
 
 var margin = {
   top: 20,
@@ -25,30 +27,53 @@ var chartGroup = svg.append("g")
 d3.csv("data.csv")
   .then(function(censusData) {
 
-    // Step 1: Parse Data/Cast as numbers
+    // Parse Data/Cast as numbers
     // ==============================
     censusData.forEach(function(data) {
       data.age = +data.age;
       data.smokes = +data.smokes;
-      data.state = data.state;
     });
 
-    // Step 2: Create scale functions
+    // Create scale functions
     // ==============================
     var xLinearScale = d3.scaleLinear()
-      .domain([20, d3.max(censusData, d => d.age)])
+      .domain([26, d3.max(censusData, d => d.age)])
       .range([0, width]);
 
     var yLinearScale = d3.scaleLinear()
-      .domain([0, d3.max(censusData, d => d.smokes)])
+      .domain([6, d3.max(censusData, d => d.smokes)])
       .range([height, 0]);
 
-    // Step 3: Create axis functions
+    // Create axis functions
     // ==============================
     var bottomAxis = d3.axisBottom(xLinearScale);
     var leftAxis = d3.axisLeft(yLinearScale);
 
-    // Step 4: Append Axes to the chart
+
+    // Create Circles
+    // ==============================
+    var circlesGroup = chartGroup.selectAll("circle")
+    .data(censusData)
+    .enter()
+    .append("circle")
+    .attr("cx", d => xLinearScale(d.age))
+    .attr("cy", d => yLinearScale(d.smokes))
+    .attr("r", "12")
+    .attr("fill", "lightblue")
+    .attr("opacity", ".5");
+
+    // add state abbreviation to circle
+    // ==============================
+    chartGroup.selectAll("text")
+    .data(censusData)
+    .enter()
+    .append("text")
+    .attr("x", d => xLinearScale(d.age)-10)
+    .attr("y", d => yLinearScale(d.smokes)+4)  
+    .classed("chartText", true)
+    .text((d) => d.abbr);
+    
+    //  Append Axes to the chart
     // ==============================
     chartGroup.append("g")
       .attr("transform", `translate(0, ${height})`)
@@ -57,19 +82,7 @@ d3.csv("data.csv")
     chartGroup.append("g")
       .call(leftAxis);
 
-    // Step 5: Create Circles
-    // ==============================
-    var circlesGroup = chartGroup.selectAll("circle")
-    .data(censusData)
-    .enter()
-    .append("circle")
-    .attr("cx", d => xLinearScale(d.age))
-    .attr("cy", d => yLinearScale(d.smokes))
-    .attr("r", "5")
-    .attr("fill", "blue")
-    .attr("opacity", ".5");
-
-    // Step 6: Initialize tool tip
+    // Initialize tool tip
     // ==============================
     var toolTip = d3.tip()
       .attr("class", "tooltip")
@@ -78,11 +91,11 @@ d3.csv("data.csv")
         return (`<br>Median Age: ${d.age}<br>Smokers(%): ${d.smokes}`);
       });
 
-    // Step 7: Create tooltip in the chart
+    // Create tooltip in the chart
     // ==============================
     chartGroup.call(toolTip);
 
-    // Step 8: Create event listeners to display and hide the tooltip
+    //  Create event listeners to display and hide the tooltip
     // ==============================
     circlesGroup.on("click", function(data) {
       toolTip.show(data, this);
